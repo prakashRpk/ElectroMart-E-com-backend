@@ -30,6 +30,10 @@ export const createPayment = async (req, res) => {
     }
 
     // 4️⃣ Create Razorpay order
+    if (!razorpayInstance) {
+        return res.status(503).json({ message: "Payment service is currently unavailable (Razorpay keys missing)." });
+    }
+
     const razorpayOrder = await razorpayInstance.orders.create({
       amount: order.total_amount * 100, // amount in paise
       currency: "INR",
@@ -68,6 +72,10 @@ export const verifyRazorpayPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     // Verify signature
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ message: "Razorpay secret key is missing on server." });
+    }
+
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -104,6 +112,10 @@ export const refundPayment = async (req, res) => {
   try {
     const { paymentId, amount } = req.body;
 
+    if (!razorpayInstance) {
+        return res.status(503).json({ message: "Refund service is currently unavailable (Razorpay keys missing)." });
+    }
+
     const refund = await razorpayInstance.payments.refund(paymentId, { amount: amount * 100 });
 
     const payment = await Payment.findOne({ razorpayPaymentId: paymentId }).populate("order");
@@ -128,6 +140,10 @@ export const refundPayment = async (req, res) => {
 export const razorpayWebhook = async (req, res) => {
   try {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    if (!secret) {
+      return res.status(500).json({ message: "Razorpay webhook secret is missing on server." });
+    }
 
     // Convert raw body buffer to string
     const body = req.body.toString();
