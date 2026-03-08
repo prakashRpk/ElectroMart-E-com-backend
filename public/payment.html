@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Razorpay Payment</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
+
 <body>
   <h2>Razorpay Payment Demo</h2>
   <button id="payButton">Pay Now</button>
@@ -17,18 +19,18 @@
     document.getElementById("payButton").onclick = async function () {
       try {
         // 1️⃣ Create order via backend
-        const res = await fetch("http://localhost:7000/api/payments/create", {
+        const res = await fetch("https://electromart-e-com-backend.onrender.com/api/payments/create", {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "token": JWT_TOKEN
           },
           body: JSON.stringify({ orderId: ORDER_ID })
         });
-        
-        
-        
-        
+
+
+
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -44,14 +46,14 @@
           name: "Your Store",
           description: "Test Payment",
           order_id: data.razorpayOrder.id,
-          handler: async function(response) {
-              console.log("Razorpay Payment ID:", response.razorpay_payment_id);
+          handler: async function (response) {
+            console.log("Razorpay Payment ID:", response.razorpay_payment_id);
             console.log("Razorpay Order ID:", response.razorpay_order_id);
             console.log("Razorpay Signature:", response.razorpay_signature);
             // 3️⃣ Verify payment
-            const verifyRes = await fetch("http://localhost:7000/api/payments/verify", {
+            const verifyRes = await fetch("https://electromart-e-com-backend.onrender.com/api/payments/verify", {
               method: "POST",
-              headers: { 
+              headers: {
                 "Content-Type": "application/json",
                 "token": JWT_TOKEN
               },
@@ -61,16 +63,16 @@
                 razorpay_signature: response.razorpay_signature
               })
             });
-            
-            
-            
-            
+
+
+
+
             const verifyData = await verifyRes.json();
             alert("Payment Verification Result:\n" + JSON.stringify(verifyData, null, 2));
           },
-          prefill: { 
-            name: "Customer Name", 
-            email: "customer@example.com" 
+          prefill: {
+            name: "Customer Name",
+            email: "customer@example.com"
           },
           theme: { color: "#3399cc" }
         };
@@ -85,4 +87,5 @@
     };
   </script>
 </body>
+
 </html>
