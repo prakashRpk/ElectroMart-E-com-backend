@@ -27,7 +27,15 @@ router.post("/stock/decrease", Auth, authorizeRoles("admin", "super admin"), dec
 router.post("/stock/increase", Auth, authorizeRoles("admin", "super admin"), increaseStock);
 
 // Image management
-router.post("/upload", Auth, authorizeRoles("admin", "super admin"), upload.single("file"), uploadProductImage);
+router.post("/upload", Auth, authorizeRoles("admin", "super admin"), (req, res, next) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      console.error("Multer/Cloudinary upload error:", err);
+      return res.status(500).json({ message: err.message || "File upload failed. Check Cloudinary credentials." });
+    }
+    next();
+  });
+}, uploadProductImage);
 router.post("/delete-image", Auth, authorizeRoles("admin", "super admin"), deleteProductImage);
 
 export default router;
